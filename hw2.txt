@@ -1,0 +1,58 @@
+For my implementation, I chose not to write make_parser entirely in
+terms of make_matcher or vice versa to address specific requirements
+and optimizations unique to each function. Instead, I leveraged common
+principles and shared some logical structures between the two while
+ensuring each function was optimized for its specific task—make_matcher
+for matching sequences in a grammar, and make_parser for constructing
+parse trees based on the grammar.
+
+Common Functions: Both functions rely on recursive traversal through the
+grammar rules and matching tokens from the input fragment. This minimized
+some duplication, as the core logic for traversing the grammar and handling
+terminal (T) and non-terminal (N) symbols is similar.
+
+Distinct Responsibilities:
+make_matcher: Focuses on validating if a sequence can be derived from the
+grammar by traversing through possible productions and immediately returning
+upon finding a successful match.
+make_parser: Constructs a detailed parse tree from matched sequences, requiring
+it to process the grammar more exhaustively and maintain context of successful
+paths even after a match is found, to build the tree structure.
+
+
+Weaknesses and Limitations:
+
+Handling of Left Recursion: Both implementations may struggle with 
+left-recursive grammars. For instance, a grammar like:
+A -> A a | b
+This would lead to infinite recursion in both make_matcher and make_parser
+because they repeatedly try to match A before consuming any input.
+
+Performance on Large Inputs: The recursive nature of both functions could
+lead to significant performance degradation when dealing with large inputs or
+deeply nested grammar rules, due to the overhead of recursive calls and
+potential stack overflow.
+
+Error Handling: Neither implementation currently provides detailed error
+messages or debugging support, which can make it difficult to identify why
+certain inputs fail to match or parse correctly.
+
+A significant limitation of my approach concerns its compatibility 
+with infinitely recursive grammars, such as:
+| Item -> [[N A]]
+| A -> [[N Item]]
+To manage this, I suggest introducing a cycle detection function, 
+separate from the existing helper functions in `make_matcher`. 
+Another issue arises with "left-handed" grammars like:
+| Expr -> [[N Expr; N Binop; N Term]]
+which could lead to infinite recursion due to prioritized parsing 
+of non-terminals, potentially solvable by reversing the grammar 
+traversal or addressing it through syntactical rather than conceptual changes.
+
+
+While the current implementations serve the basic functionalities of parsing
+and matching based on context-free grammars, they could be improved by
+introducing mechanisms to handle left recursion, optimizing recursive calls,
+and enhancing error reporting to aid debugging. Future iterations could explore
+iterative approaches or employ more sophisticated parsing techniques such as LR
+or LL parsers to address these weaknesses.
